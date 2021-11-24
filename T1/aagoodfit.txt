@@ -1,0 +1,36 @@
+total <- log(ES$Total)
+treino <- ts(total[1:180], frequency = 12)
+teste <- ts(total[181:210], frequency = 12)
+
+plot(treino, type= 'l')
+plot(decompose(treino))
+dummies <- factor(cycle(treino))
+
+
+inter1 <- numeric(length(treino))
+inter2 <- numeric(length(treino))
+inter3 <- numeric(length(treino))
+
+inter1[59:66] <- 1
+inter2[133:180] <- 1
+inter3[164:180] <- 1
+
+t <- c(1:length(treino))
+
+df_treino <- data.frame(treino, t, dummies, inter1, inter2, inter3)
+
+df_treino$t2 <- df_treino$t -133
+df_treino$t3 <- df_treino$t -164
+
+df_treino$X2 <- df_treino$t2 * df_treino$inter2
+df_treino$X3 <- df_treino$t2 * df_treino$inter3
+
+
+fit.reg <- lm(formula = treino ~ t + X2 + X3 + inter1, data = df_treino)
+summary(fit.reg)
+
+ggplot(df_treino, aes(x = t, y = treino)) + 
+  geom_line(alpha=0.7) +                           # observed data
+  geom_line(aes(x = t, y = fit.reg$fitted.values),  # predicted data
+            color='red', alpha=0.5)
+

@@ -1,0 +1,60 @@
+
+# carrega base de dados
+# carregamos uma tabela para cada uma das categorias:
+classes <- c('', 'CATIVO', 'RESIDENCIAL', 'INDUSTRIAL', 'COMERCIAL', 'OUTROS')
+
+consumo <- list()
+for (cl in classes){
+  if (stringr::str_length(cl)>0){
+    sheet <- sprintf('CONSUMO %s POR UF', cl)
+    ind = cl
+  } else {
+    sheet <- 'CONSUMO POR UF'
+    ind = 'TOTAL'
+  }
+  consumo[[ind]] <- readxl::read_xls(path.expand("~/Documents/TimeSeries/T1/dados.xls"),
+                                       sheet = sheet,
+                                       range = 'A8:HC34',
+                                       col_names = F)
+}
+
+# listo estados
+cat(paste0(consumo$TOTAL$...1,'\n'))
+#obtenho a série temporal de consumo total  e industrial do Espírito Santo
+consumo$TOTAL%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> total
+
+consumo$INDUSTRIAL%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> indus
+
+consumo$RESIDENCIAL%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> residencial
+
+consumo$CATIVO%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> cativo
+
+consumo$COMERCIAL%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> comercial
+
+consumo$OUTROS%>% 
+  filter(`...1` == 'Espírito Santo') %>% 
+  select(-`...1`) %>% t %>% 
+  ts(start=c(2004,1), end = c(2021,6), frequency=12) -> outros
+
+ES <- list()
+ES[['Industrial']] <- indus
+ES[['Comercial']] <- comercial
+ES[['Cativo']] <- cativo
+ES[['Residencial']] <- residencial
+ES[['Outros']] <- outros
+ES[['Total']] <- total
